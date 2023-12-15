@@ -38,9 +38,10 @@ int parse_line(char *s, char **argv[]){
 
 int main(int argc , char * argv[]){
 
-    char prompt[] = {'$', ' '};
+    int n;
+    char prompt[] = {'$'};
     char buffer[BUFSIZE];
-    int commandSize = 0;
+    //int commandSize = 0;
     //int commandLength = 0;
     //int finalLength;
     //int n;
@@ -48,14 +49,11 @@ int main(int argc , char * argv[]){
     
 
     while(1){
-        write(STDOUT_FILENO,(void*) prompt, 2);
-        read(STDIN_FILENO, (void*) buffer, BUFSIZE);
+        write(STDOUT_FILENO,(void*) prompt, 1);
+        n = read(STDIN_FILENO, (void*) buffer, BUFSIZE);
         
-	for(int i = 0; buffer[i] != '\0'; i++){
-		commandSize++;
-	}
-	char command[commandSize];
-	for(int i = 0; i < commandSize; i++){
+	char command[n];
+	for(int i = 0; i < n; i++){
 		command[i] = buffer[i];
 	}
 
@@ -77,13 +75,16 @@ int main(int argc , char * argv[]){
         /*if(buffer == "exit"){
             exit(0);
         }*/
-        write(STDOUT_FILENO, (void*) "écriture réussie\n", 20);
+        //write(STDOUT_FILENO, (void*) "écriture réussie\n", 20);
 	write(STDOUT_FILENO, (void*) command, sizeof(command));
         
 	//processus fils, qui execute la commande
         if(fork() == 0){
-            execl("/bin/sh","/bin/sh",  "-c", buffer, (char*) NULL);
+            execl("/bin/sh","/bin/sh",  "-c", command, (char*) NULL);
         }
+	else{
+		wait(NULL);
+	}
         /*if (n != -1){
             parse_line(buffer, args);
         
