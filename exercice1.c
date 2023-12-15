@@ -1,12 +1,14 @@
 #include <stdio.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define SIZE 1024
+#define BUFSIZE 1024
+
 
 
 int parse_line(char *s, char **argv[]){
@@ -37,7 +39,8 @@ int parse_line(char *s, char **argv[]){
 int main(int argc , char * argv[]){
 
     char prompt[] = {'$', ' '};
-    char buffer[2];
+    char buffer[BUFSIZE];
+    int commandSize = 0;
     //int commandLength = 0;
     //int finalLength;
     //int n;
@@ -46,8 +49,16 @@ int main(int argc , char * argv[]){
 
     while(1){
         write(STDOUT_FILENO,(void*) prompt, 2);
-        read(STDIN_FILENO, (void*) buffer, 2);
+        read(STDIN_FILENO, (void*) buffer, BUFSIZE);
         
+	for(int i = 0; buffer[i] != '\0'; i++){
+		commandSize++;
+	}
+	char command[commandSize];
+	for(int i = 0; i < commandSize; i++){
+		command[i] = buffer[i];
+	}
+
        /* for(int i= 0 ;i<1024;i++){
             if(buffer[i] - '\0' == 0){
                 finalLength = commandLength;
@@ -67,9 +78,11 @@ int main(int argc , char * argv[]){
             exit(0);
         }*/
         write(STDOUT_FILENO, (void*) "écriture réussie\n", 20);
+	write(STDOUT_FILENO, (void*) command, sizeof(command));
         
+	//processus fils, qui execute la commande
         if(fork() == 0){
-            execlp(buffer, buffer, (char*) NULL);
+            execl("/bin/sh","/bin/sh",  "-c", buffer, (char*) NULL);
         }
         /*if (n != -1){
             parse_line(buffer, args);
