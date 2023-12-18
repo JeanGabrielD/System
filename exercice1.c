@@ -10,73 +10,31 @@
 #define BUFSIZE 1024
 
 
-
-int parse_line(char *s, char **argv[]){
-    char word[1024];
-    int nbWord = 0;
-    int wordIndex = 0;
-    for(int i=0; i < sizeof(s) ; i++){
-        if(s[i] == ' '){
-            *argv[nbWord] = word;
-            nbWord++;
-            wordIndex = 0;  
-        }
-        else{
-            word[wordIndex] = s[i];
-            wordIndex++;
-        }
-
-    }
-    write(STDOUT_FILENO, word, sizeof(word));
-
-    write(STDOUT_FILENO, "parsing réussi", 16);
-    *argv[nbWord] = word;
-    *argv[nbWord + 1] = NULL;
-    write(STDOUT_FILENO, "parsing réussi", 16);
-    return 1;
-}
-
 int main(int argc , char * argv[]){
 
     int n;
     char prompt[] = {'$'};
     char buffer[BUFSIZE];
-    //int commandSize = 0;
-    //int commandLength = 0;
-    //int finalLength;
-    //int n;
-    //char **args[1024];
-    
 
     while(1){
         write(STDOUT_FILENO,(void*) prompt, 1);
         n = read(STDIN_FILENO, (void*) buffer, BUFSIZE);
         
-	char command[n];
-	for(int i = 0; i < n; i++){
-		command[i] = buffer[i];
+	char command[n + 1]; // +1 for null-termination
+	strncpy(command, buffer, n);
+	command[n] = '\0'; 
+
+	write(STDOUT_FILENO, (void*) command, sizeof(command));
+
+	size_t command_length = strlen(command);
+	if(command_length > 0 && command[command_length - 1] == '\n'){
+		command[command_length - 1] = '\0';
 	}
 
-       /* for(int i= 0 ;i<1024;i++){
-            if(buffer[i] - '\0' == 0){
-                finalLength = commandLength;
-            }
-            else{
-                commandLength++;
-            }
-        }
-
-        char bufferOut[finalLength];*/
-
-        //for (int i = 0; i < finalLength; i++){
-            /*bufferOut[i] = buffer[i];
-        }*/
-        
-        /*if(buffer == "exit"){
-            exit(0);
-        }*/
-        //write(STDOUT_FILENO, (void*) "écriture réussie\n", 20);
-	write(STDOUT_FILENO, (void*) command, sizeof(command));
+	if(strcmp(command, "exit") == 0){
+		printf("exiting the shell\n");
+		break;
+	}
         
 	//processus fils, qui execute la commande
         if(fork() == 0){
@@ -85,17 +43,7 @@ int main(int argc , char * argv[]){
 	else{
 		wait(NULL);
 	}
-        /*if (n != -1){
-            parse_line(buffer, args);
-        
-        }
-
-        if(fork() == 0){
-            execvp(*args[0], *args);
-        }*/
 
     }
-
     return 1;
-
 }
