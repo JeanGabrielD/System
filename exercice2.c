@@ -25,11 +25,8 @@ int parse_line(char *s, char **argv[]){
             word[wordIndex] = s[i];
             wordIndex++;
         }
-
     }
     write(STDOUT_FILENO, word, sizeof(word));
-
-    write(STDOUT_FILENO, "parsing réussi", 16);
     *argv[nbWord] = word;
     *argv[nbWord + 1] = NULL;
     write(STDOUT_FILENO, "parsing réussi", 16);
@@ -72,9 +69,7 @@ int main(int argc , char * argv[]){
             /*bufferOut[i] = buffer[i];
         }*/
         
-        /*if(buffer == "exit"){
-            exit(0);
-        }*/
+       
         //write(STDOUT_FILENO, (void*) "écriture réussie\n", 20);
 	write(STDOUT_FILENO, (void*) command, sizeof(command));
         
