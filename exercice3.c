@@ -64,14 +64,30 @@ int main(int argc, char *argv[]) {
             if (argc > 0) {
                  printf("affichons les commandes dans le tableu\n");
                 for (int i = 0; i < argc+1; i++) {
-                    printf("| %s", args[i]);
+                    printf(" | %s", args[i]);
                 }
                 printf("\n");
                
+                if (strcmp(args[0], "exit") == 0) {
+                    printf("Exiting the shell\n");
+                    break;
+                }
+
+                if (fork() == 0) {
+                    execvp(args[0], args);
+                    perror("Exec failed");
+                    exit(EXIT_FAILURE);
+                  
+                } else {
+                    wait(NULL);
+                }
+
                 // Libérer la mémoire allouée pour les arguments
-                
+                for (int i = 0; i < argc+1; i++) {
+                    free(args[i]);
+                }
                 free(args);
-                
+                args = NULL;
             }
         }
     }
