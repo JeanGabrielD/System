@@ -5,10 +5,17 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-
+#include <fcntl.h>  // Pour open
 
 #define BUFSIZE 1024
 #define MAX_ARGS 16
+
+void free_args(char **args, int argc) {
+    for (int i = 0; i < argc; i++) {
+        free(args[i]);
+    }
+    free(args);
+}
 
 int parse_line(char *s, char **argv[]) {
     char word[BUFSIZE];
@@ -60,28 +67,60 @@ int main(int argc, char *argv[]) {
 
         if (n != -1) {
             int argc = parse_line(buffer, &args);
-             
-               
+
             if (argc > 0) {
                 if (strcmp(args[0], "exit") == 0) {
                     printf("Exiting the shell\n");
                     free_args(args, argc);
                     break;
                 }
-                 printf("affichons les commandes dans le tableau\n");
-                for (int i = 0; i < argc+1; i++) {
-                    printf("| %s", args[i]);
-                }
-                printf("\n");
-               
-                // Libérer la mémoire allouée pour les arguments
+
+                // Recherche de l'indice du caractère '>'
+                int redirect_index = -1;
                 for (int i = 0; i < argc; i++) {
-                    free(args[i]);
+                    if (strcmp(args[i], ">") == 0) {
+                        redirect_index = i;
+                        break;
+                    }
                 }
-                
-                free(args);
+
+                if (redirect_index != -1 && redirect_index == argc - 2) {
+                    // Redirection de la sortie standard vers un fichier
+                    char *output_file = args[redirect_index + 1];
+                    args[redirect_index] = NULL; 
+                    int fd = open(output_file, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+                    if (fd == -1) {
+                        perror("Erreur lors de l'ouverture du fichier");
+                        free_args(args, argc);
+                        continue;
+                    }
+
+                    if (fork() == 0) {
+                        // Redirection de la sortie standard vers le fichier
+                        dup2(fd, STDOUT_FILENO);
+                        close(fd);
+
+                        // Exécution de la commande
+                        execvp(args[0], args);
+                        perror("Exec failed");
+                        exit(EXIT_FAILURE);
+                    } else {
+                        wait(NULL);
+                    }
+                } else {
+                    // Exécution normale sans redirection
+                    if (fork() == 0) {
+                        execvp(args[0], args);
+                        perror("Exec failed");
+                        exit(EXIT_FAILURE);
+                    } else {
+                        wait(NULL);
+                    }
+                }
+
+                // Libérer la mémoire allouée pour les arguments
+                free_args(args, argc);
                 args = NULL;
-                
             }
         }
     }
