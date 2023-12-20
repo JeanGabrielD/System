@@ -63,16 +63,16 @@ int main(int argc, char *argv[]) {
              
                
             if (argc > 0) {
-                if (strcmp(args[0], "exit") == 0) {
-                    printf("Exiting the shell\n");
-                    free_args(args, argc);
-                    break;
-                }
                  printf("affichons les commandes dans le tableau\n");
                 for (int i = 0; i < argc+1; i++) {
                     printf("| %s", args[i]);
                 }
                 printf("\n");
+
+                if (strcmp(args[0], "exit") == 0) {
+                    printf("Exiting the shell\n");
+                    break;
+                }
                
                 // Libérer la mémoire allouée pour les arguments
                 for (int i = 0; i < argc; i++) {
