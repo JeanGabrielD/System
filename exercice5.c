@@ -95,45 +95,60 @@ int main(int argc, char *argv[]) {
                 }
 
                 if (pipe_index != -1) {
-                    // Handle the case where a pipe is present
-                    args[pipe_index] = NULL; // Set the pipe as the end of the first command
-                    int pipe_fd[2];
-                    pipe(pipe_fd);
+                    // Handle pipe case
+                    args[pipe_index] = NULL; // Set NULL at the pipe position
+
+                    // Create a pipe
+                    int fd[2];
+                    if (pipe(fd) == -1) {
+                        perror("Pipe failed");
+                        exit(EXIT_FAILURE);
+                    }
 
                     if (fork() == 0) {
-                        // Child process: set up output redirection
-                        close(pipe_fd[0]); // Close unused read end
-                        dup2(pipe_fd[1], STDOUT_FILENO); // Redirect stdout to the pipe
-                        close(pipe_fd[1]); // Close write end
+                        // Child process (first command)
+                        close(fd[0]); // Close unused read end
+
+                        // Redirect standard output to the pipe
+                        dup2(fd[1], STDOUT_FILENO);
+                        close(fd[1]); // Close the write end of the pipe
 
                         execvp(args[0], args);
                         perror("Exec failed");
                         exit(EXIT_FAILURE);
                     } else {
-                        // Parent process: wait for the child and set up input redirection
-                        wait(NULL);
-                        close(pipe_fd[1]); // Close unused write end
-                        dup2(pipe_fd[0], STDIN_FILENO); // Redirect stdin to the pipe
-                        close(pipe_fd[0]); // Close read end
+                        // Parent process
+                        close(fd[1]); // Close the write end of the pipe
 
-                        // Move to the second part of the command
-                        for (int i = pipe_index + 1; i < argc; i++) {
-                            args[i - (pipe_index + 1)] = args[i];
+                        if (fork() == 0) {
+                            // Child process (second command)
+                            // Redirect standard input to the pipe
+                            dup2(fd[0], STDIN_FILENO);
+                            close(fd[0]); // Close the read end of the pipe
+
+                            char **args_second = args + pipe_index + 1;
+                            execvp(args_second[0], args_second);
+                            perror("Exec failed");
+                            exit(EXIT_FAILURE);
+                        } else {
+                           
+                            close(fd[0]);
+                            wait(NULL);   
+                           
                         }
-                        argc -= (pipe_index + 1);
+                    }
+                } else {
+                    
+                    if (fork() == 0) {
+                        execvp(args[0], args);
+                        perror("Exec failed");
+                        exit(EXIT_FAILURE);
+                    } else {
+                        wait(NULL);
                     }
                 }
 
-                // Execute the command
-                if (fork() == 0) {
-                    execvp(args[0], args);
-                    perror("Exec failed");
-                    exit(EXIT_FAILURE);
-                } else {
-                    wait(NULL);
-                }
-
-                // Libérer la mémoire allouée pour les arguments
+                // Free allocated memory
                 for (int i = 0; i < argc; i++) {
                     free(args[i]);
                 }
