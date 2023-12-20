@@ -16,7 +16,7 @@ int parse_line(char *s, char **argv[]) {
     int wordIndex = 0;
 
     // Allouer de l'espace pour le tableau d'arguments
-    *argv = (char **)malloc((BUFSIZE / 2) * sizeof(char *));
+    *argv = (char **)malloc((MAX_ARGS + 1) * sizeof(char *));
     if (*argv == NULL) {
         perror("Allocation echouee");
         exit(EXIT_FAILURE);
@@ -25,6 +25,7 @@ int parse_line(char *s, char **argv[]) {
     for (int i = 0; s[i] != '\0'; i++) {
         if (isspace((unsigned char)s[i]) || s[i] == '\n') {
             word[wordIndex] = '\0';
+            s[i] = '\0';
             if (wordIndex > 0 && nbWord < MAX_ARGS) {
                 // Ignorer les espaces supplémentaires entre les mots
                 (*argv)[nbWord] = malloc(strlen(word) + 1);
@@ -69,8 +70,12 @@ int main(int argc, char *argv[]) {
                 printf("\n");
                
                 // Libérer la mémoire allouée pour les arguments
+                for (int i = 0; i < argc; i++) {
+                    free(args[i]);
+                }
                 
                 free(args);
+                args = NULL;
                 
             }
         }

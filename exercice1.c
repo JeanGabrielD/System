@@ -20,7 +20,7 @@ int main(int argc , char * argv[]){
         write(STDOUT_FILENO,(void*) prompt, 1);
         n = read(STDIN_FILENO, (void*) buffer, BUFSIZE);
         
-	char command[n + 1]; // +1 for null-termination
+	char command[n + 1];
 	strncpy(command, buffer, n);
 	command[n] = '\0'; 
 
