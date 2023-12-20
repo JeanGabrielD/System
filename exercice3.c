@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
              
                
             if (argc > 0) {
-                 printf("affichons les commandes dans le tableu\n");
+                 printf("affichons les commandes dans le tableau\n");
                 for (int i = 0; i < argc+1; i++) {
                     printf(" | %s", args[i]);
                 }
