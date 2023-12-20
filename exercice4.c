@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <fcntl.h>  // Pour open
+#include <fcntl.h> 
 
 #define BUFSIZE 1024
 #define MAX_ARGS 16
