@@ -8,6 +8,7 @@
 
 
 #define BUFSIZE 1024
+#define MAX_ARGS 16
 
 int parse_line(char *s, char **argv[]) {
     char word[BUFSIZE];
@@ -24,7 +25,7 @@ int parse_line(char *s, char **argv[]) {
     for (int i = 0; s[i] != '\0'; i++) {
         if (isspace((unsigned char)s[i]) || s[i] == '\n') {
             word[wordIndex] = '\0';
-            if (wordIndex > 0) {
+            if (wordIndex > 0 && nbWord < MAX_ARGS) {
                 // Ignorer les espaces supplémentaires entre les mots
                 (*argv)[nbWord] = malloc(strlen(word) + 1);
                 if ((*argv)[nbWord] == NULL) {
